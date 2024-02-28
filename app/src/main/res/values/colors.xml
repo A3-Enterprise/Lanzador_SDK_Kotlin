@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#0057FF</color>
+    <color name="colorPrimaryDark">#333333</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="black_overlay">#66000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="colorPrimaryTrans">#aa89CFF0</color>
+
+    <color name="background_getconfig">#0057FF</color>
+    <color name="color_loader_getconfig">#FFFFFF</color>
+
+    <color name="background_face">#0057FF</color>
+    <color name="color_title_face">#FFFFFF</color>
+    <color name="color_description_face">#FFFFFF</color>
+    <color name="color_retake_button_face">#FFFFFF</color>
+    <color name="color_start_button_face">#333333</color>
+    <color name="color_post_description_face">#FFFFFF</color>
+    <color name="color_post_confirmation_description_face">#FFFFFF</color>
+    <color name="color_loader_face">#FFFFFF</color>
+
+    <color name="background_doc">#0057FF</color>
+    <color name="color_title_doc">#FFFFFF</color>
+    <color name="color_description_doc">#FFFFFF</color>
+    <color name="color_start_button_doc">#333333</color>
+    <color name="color_loader_doc">#FFFFFF</color>
+    <color name="color_description_image_confirmation">#FFFFFF</color>
+    <color name="color_retake_button_image_confirmation">#FFFFFF</color>
+    <color name="color_confirm_button_image_confirmation">#333333</color>
+
+    <color name="background_poupconnection">#0057FF</color>
+    <color name="color_title_popupconnection">#FFFFFF</color>
+    <color name="color_description_popupconnection">#FFFFFF</color>
+    <color name="color_exit_button_popupconnection">#FFFFFF</color>
+    <color name="color_tryagain_button_popupconnection">#333333</color>
+
+    <color name="background_popupmaxattemptsliveness">#0057FF</color>
+    <color name="color_title_popupmaxattemptslivenes">#FFFFFF</color>
+    <color name="color_description_popupmaxattemptsliveness">#FFFFFF</color>
+    <color name="continue_button_popupmaxattemptsliveness">#333333</color>
+
+    <color name="background_personaldetails">#0057FF</color>
+    <color name="color_title_personaldetails">#FFFFFF</color>
+    <color name="color_description_personaldetails">#FFFFFF</color>
+    <color name="color_continue_button_personaldetails">#333333</color>
+    <color name="color_loader_personaldetails">#FFFFFF</color>
+
+    <color name="background_registeruser">#0057FF</color>
+    <color name="color_title_registeruser">#FFFFFF</color>
+    <color name="color_continue_button_registeruser">#333333</color>
+    <color name="color_loader_registeruser">#FFFFFF</color>
+
+    <color name="background_userauthentication">#0057FF</color>
+    <color name="color_title_userauthentication">#FFFFFF</color>
+    <color name="color_continue_button_userauthentication">#333333</color>
+    <color name="color_loader_userauthentication">#FFFFFF</color>
+
+    <color name="background_signature">#FFFFFF</color>
+    <color name="color_clean_button_signature">#333333</color>
+    <color name="color_continue_button_signature">#333333</color>
+    <color name="color_loader_signature">#0057FF</color>
+
+    <color name="background_getdata">#0057FF</color>
+    <color name="color_title_getdata">#FFFFFF</color>
+    <color name="color_continue_button_getdata">#333333</color>
+    <color name="color_loader_getdata">#FFFFFF</color>
+
+    <color name="background_personaldata">#0057FF</color>
+    <color name="color_title_personaldata">#FFFFFF</color>
+    <color name="color_continue_button_personaldata">#333333</color>
+    <color name="color_decline_button_personaldata">#FFFFFF</color>
+    <color name="color_loader_personaldata">#FFFFFF</color>
+    <color name="color_text_political_personaldata">#333333</color>
+    <color name="color_confirm_political_personaldata">#FFFFFF</color>
+
+    <color name="background_results">#0057FF</color>
+    <color name="color_result_results">#FFFFFF</color>
+    <color name="color_continue_button_results">#333333</color>
+    <color name="color_loader_results">#FFFFFF</color>
+
+    <color name="background_finger">#0057FF</color>
+    <color name="color_title_finger">#FFFFFF</color>
+    <color name="color_description_finger">#FFFFFF</color>
+    <color name="color_retake_button_finger">#FFFFFF</color>
+    <color name="color_start_button_finger">#333333</color>
+    <color name="color_post_description_finger">#FFFFFF</color>
+    <color name="color_post_confirmation_description_finger">#FFFFFF</color>
+    <color name="color_left_hand_description">#FFFFFF</color>
+    <color name="color_right_hand_description">#FFFFFF</color>
+    <color name="color_loader_finger">#FFFFFF</color>
+    <color name="color_switch_thumb_description">#FFFFFF</color>
+
+    <color name="color_primary_button">#FFFFFF</color>
+    <color name="color_stroke_primary_button">#FFFFFF</color>
+    <color name="color_secundary_button">#0057FF</color>
+    <color name="color_stroke_secundary_button">#FFFFFF</color>
+    <color name="white">#FFFFFF</color>
+
+</resources>
