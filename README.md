@@ -4,11 +4,11 @@ El lanzador es un ejemplo de implementación de las librerias necesarias para in
 
 ## Instalación
 
-Primero, añadir las librería "idfactory_1_0_3_"
+Primero, añadir las librería "idfactory_1_0_10_"
 en las dependencias del proyecto. 
 
 `dependencies{
-  implementation(files("libs/idfactory_1_0_2.aar"))
+  implementation(files("libs/idfactory_1_0_10.aar"))
   }`
   
 Asi mismo es necesario importar las siguientes librerías.

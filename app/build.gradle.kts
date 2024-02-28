@@ -73,5 +73,5 @@ dependencies {
     implementation ("androidx.core:core-ktx:1.1.0-alpha05")
     implementation ("androidx.constraintlayout:constraintlayout:1.1.3")
      //IDFactory
-    implementation(files("libs/idfactory_1_0_8.aar"))
+    implementation(files("libs/idfactory_1_0_10.aar"))
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.mouredev.mywebview.IDFactoryHandler
 import com.mouredev.mywebview.IdFactorySDK1
@@ -15,6 +16,7 @@ class TestSDK : AppCompatActivity()  {
     private lateinit var uri: String
     private val TAG = "TestSDK"
     val idFactorySDK = IdFactorySDK1.instance
+
 
 
     companion object {
@@ -43,11 +45,14 @@ class TestSDK : AppCompatActivity()  {
             this,
             uri,
             object : IDFactoryHandler {
-                override fun onSuccess(response: CloseResponse?) {
-                    val code1 = response!!
+                override fun onSuccess(response: String?) {
+                    val textView: TextView = findViewById(R.id.textView)
+                    textView.visibility
+                    textView.setText(response)
                 }
-                override fun onFailure(response: CloseResponse?) {
-                    val code = response!!
+                override fun onFailure(response: String?) {
+                    val textView: TextView = findViewById(R.id.textView)
+                    textView.setText(response)
                 }
             })
     }
