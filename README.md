@@ -4,11 +4,11 @@ El lanzador es un ejemplo de implementación de las librerias necesarias para in
 
 ## Instalación
 
-Primero, añadir las librería "idfactory_1_0_10_"
+Primero, añadir las librería "idfactory_1_0_11_"
 en las dependencias del proyecto. 
 
 `dependencies{
-  implementation(files("libs/idfactory_1_0_10.aar"))
+  implementation(files("libs/idfactory_1_0_11.aar"))
   }`
   
 Asi mismo es necesario importar las siguientes librerías.
@@ -22,7 +22,7 @@ La librería responde el resultado de la transacción en un objeto llamado Close
 
 ### Version minima del SDK Android
 
-Cambiar la versión minima del SDK Android a 26 y targetSdk a 24 (o mas alta) en el archivo `android/app/build.gradle`
+Cambiar la versión minima del SDK Android a 26 y targetSdk a 34 (o mas alta) en el archivo `android/app/build.gradle`
 
 ### Ejemplo
 
