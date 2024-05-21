@@ -4,40 +4,53 @@ El lanzador es un ejemplo de implementación de las librerias necesarias para in
 
 ## Instalación
 
-Primero, añadir las librería "idfactory_1_0_11_"
+Primero, añadir las librería "idfactory_1_0_13_"
 en las dependencias del proyecto. 
 
-`dependencies{
-  implementation(files("libs/idfactory_1_0_11.aar"))
-  }`
+```gradle
+dependencies{
+  implementation(files("libs/idfactory_1_0_13.aar"))
+}
+```
   
 Asi mismo es necesario importar las siguientes librerías.
 
+```gradle
 //Android.x
-    implementation ("androidx.appcompat:appcompat:1.0.0-beta01")
-    implementation ("androidx.core:core-ktx:1.1.0-alpha05")
-    implementation ("androidx.constraintlayout:constraintlayout:1.1.3")
+implementation ("androidx.appcompat:appcompat:1.0.0-beta01")
+implementation ("androidx.core:core-ktx:1.1.0-alpha05")
+implementation ("androidx.constraintlayout:constraintlayout:1.1.3")
+```
 
-La librería responde el resultado de la transacción en un objeto llamado CloseResponse  
+### Importaciones necesarias
+
+```kotlin
+import com.SDK_kotlin.mywebview.IDFactoryHandler
+import com.SDK_kotlin.mywebview.IdFactorySDK1
+```
 
 ### Version minima del SDK Android
 
 Cambiar la versión minima del SDK Android a 26 y targetSdk a 34 (o mas alta) en el archivo `android/app/build.gradle`
 
-### Ejemplo
+## Implementación
 
-Este es un pequeño ejemplo de como invocar el metodo que lanzara la librería. 
-    
-fun capture (uri: String){
-        idFactorySDK.start(
-            this,
-            uri,
-            object : IDFactoryHandler {
-                override fun onSuccess(response: CloseResponse?) {
-                    val code1 = response!!
-                }
-                override fun onFailure(response: CloseResponse?) {
-                    val code = response!!
-                }
-            })
-    }
+### Ejemplo de uso
+
+```kotlin
+fun capture(uri: String) {
+    IdFactorySDK1.instance.start(
+        this,
+        uri,
+        object : IDFactoryHandler {
+            override fun onSuccess(response: String?) {
+                // La respuesta viene como JSON string
+            }
+            
+            override fun onFailure(response: String?) {
+                // Error en formato string
+            }
+        }
+    )
+}
+```
