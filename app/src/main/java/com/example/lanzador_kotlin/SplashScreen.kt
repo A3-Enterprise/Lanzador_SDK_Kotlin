@@ -5,9 +5,11 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.view.Window
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +21,8 @@ import com.SDK_kotlin.mywebview.MyApp
 class SplashScreen : AppCompatActivity() {
     private lateinit var uri: String
     private val TAG = "SplashScreen"
-    val idFactorySDK = IdFactorySDK1.instance
+    val idFactorySDK1 = IdFactorySDK1.instance
+
 
 
 
@@ -31,7 +34,11 @@ class SplashScreen : AppCompatActivity() {
         myApp.SetContext(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
+
+        Log.e("LAUNCHER_DEBUG", "=== NUEVA VERSION LANZADOR INICIADA ===")
+        Log.e("LAUNCHER_DEBUG", "SplashScreen onCreate ejecutado")
         Log.i("Launcher", "Se inicio el splashScreenLanzador")
+        
         val uriInvitation: EditText = findViewById(R.id.uri_invitation)
         val btn_start: Button = findViewById(R.id.btn_start)
         btn_start.setOnClickListener {
@@ -45,26 +52,184 @@ class SplashScreen : AppCompatActivity() {
         btn_close.setOnClickListener {
             showCustomDialogBox("Estás seguro que deseas cerrar el app?")
         }
-    }
+        
 
-    fun capture (uri: String){
-        idFactorySDK.start(
+    }
+    
+
+
+    fun capture(uri: String) {
+        Log.e("LAUNCHER_DEBUG", "=== LAUNCHER DEBUG START ===")
+        Log.e("LAUNCHER_DEBUG", "Iniciando captura con URI: $uri")
+        Log.e("LAUNCHER_DEBUG", "SDK Instance: ${idFactorySDK1.javaClass.name}")
+        Log.e("LAUNCHER_DEBUG", "SDK Package: ${idFactorySDK1.javaClass.`package`?.name}")
+        
+        // Test log para confirmar que funciona
+        println("=== LANZADOR: BOTON PRESIONADO ===")
+        Log.e("TEST_HARDWARE", "=== TELEFONO HARDWARE CONECTADO ===")
+        Log.w("TEST_HARDWARE", "=== WARNING LOG TEST ===")
+        Log.i("TEST_HARDWARE", "=== INFO LOG TEST ===")
+        Log.d("TEST_HARDWARE", "=== DEBUG LOG TEST ===")
+        Log.v("TEST_HARDWARE", "=== VERBOSE LOG TEST ===")
+        Log.e("TIMEOUT_COUNTER", "=== TEST LOG DESDE LANZADOR ===")
+        
+        idFactorySDK1.start(
             this,
             uri,
             object : IDFactoryHandler {
                 override fun onSuccess(response: String?) {
-                    //val textView: TextView = findViewById(R.id.textView)
-                    //textView.visibility
-                    //textView.setText(response)
-                    showCustomDialogBox(response)
-
+                    Log.e("LAUNCHER_DEBUG", "=== SDK onSuccess llamado ===")
+                    Log.e("LAUNCHER_DEBUG", "🤖 Android Lanzador: onSuccess() - Respuesta recibida")
+                    Log.e("LAUNCHER_DEBUG", "Response: $response")
+                    
+                    // Parsear respuesta para obtener status
+                    val status = parseStatus(response)
+                    Log.e("LAUNCHER_DEBUG", "Status detectado: $status")
+                    
+                    when (status) {
+                        "Success" -> {
+                            Log.e("LAUNCHER_DEBUG", "✅ Proceso completado exitosamente")
+                            showSuccessDialog("✅ Proceso Completado", "El proceso de verificación se completó exitosamente.", response)
+                        }
+                        "Pending" -> {
+                            Log.e("LAUNCHER_DEBUG", "⏳ Proceso pendiente de aprobación")
+                            showSuccessDialog("⏳ Proceso Pendiente", "El proceso está pendiente de aprobación. Se requiere revisión manual.", response)
+                        }
+                        else -> {
+                            Log.e("LAUNCHER_DEBUG", "✅ Respuesta exitosa con status: $status")
+                            showSuccessDialog("✅ Éxito", "Proceso completado.", response)
+                        }
+                    }
                 }
+                
                 override fun onFailure(response: String?) {
-                    //val textView: TextView = findViewById(R.id.textView)
-                    //textView.setText(response)
-                    showCustomDialogBox(response)
+                    Log.e("LAUNCHER_DEBUG", "=== SDK onFailure llamado ===")
+                    Log.e("LAUNCHER_DEBUG", "🤖 Android Lanzador: onFailure() - Error recibido")
+                    Log.e("LAUNCHER_DEBUG", "Response: $response")
+                    
+                    // Parsear respuesta para obtener status y mensaje
+                    val status = parseStatus(response)
+                    val message = parseMessage(response)
+                    Log.e("LAUNCHER_DEBUG", "Status de error: $status")
+                    Log.e("LAUNCHER_DEBUG", "Mensaje de error: $message")
+                    
+                    when (status) {
+                        "Failure-liveness" -> {
+                            Log.e("LAUNCHER_DEBUG", "❌ Error específico de liveness")
+                            showErrorDialog("❌ Error de Liveness", "Error en la detección de vida: $message", response)
+                        }
+                        "Failure" -> {
+                            Log.e("LAUNCHER_DEBUG", "❌ Error general en el proceso")
+                            showErrorDialog("❌ Error en el Proceso", "Error: $message", response)
+                        }
+                        else -> {
+                            Log.e("LAUNCHER_DEBUG", "❌ Error con status: $status")
+                            showErrorDialog("❌ Error", message, response)
+                        }
+                    }
                 }
-            })
+            }
+        )
+        Log.e("LAUNCHER_DEBUG", "=== LAUNCHER DEBUG END ===")
+    }
+
+    // MARK: - Response Parsers
+    
+    private fun parseStatus(response: String?): String {
+        return try {
+            val jsonObject = org.json.JSONObject(response ?: "{}")
+            jsonObject.optString("status", "Unknown")
+        } catch (e: Exception) {
+            "Unknown"
+        }
+    }
+    
+    private fun parseMessage(response: String?): String {
+        return try {
+            val jsonObject = org.json.JSONObject(response ?: "{}")
+            jsonObject.optString("message", "Sin mensaje")
+        } catch (e: Exception) {
+            response ?: "Sin respuesta"
+        }
+    }
+    
+    // MARK: - Dialog Handlers
+    
+    private fun showSuccessDialog(title: String, message: String, fullResponse: String?) {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.layout_custom_dailog)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val tvMessage: TextView = dialog.findViewById(R.id.tvMessage)
+        val btnYes: Button = dialog.findViewById(R.id.btnYes)
+        val btnNo: Button = dialog.findViewById(R.id.btnNo)
+
+        tvMessage.text = "$title\n\n$message"
+        btnYes.text = "Ver Respuesta Completa"
+        btnNo.text = "Nueva Invitación"
+
+        btnYes.setOnClickListener {
+            showFullResponseDialog(fullResponse)
+            dialog.dismiss()
+        }
+
+        btnNo.setOnClickListener {
+            Log.i("Launcher", "Nueva invitación solicitada")
+            dialog.dismiss()
+            // Limpiar campo URL para nueva invitación
+            findViewById<EditText>(R.id.uri_invitation).setText("")
+        }
+        dialog.show()
+    }
+    
+    private fun showErrorDialog(title: String, message: String, fullResponse: String?) {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.layout_custom_dailog)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val tvMessage: TextView = dialog.findViewById(R.id.tvMessage)
+        val btnYes: Button = dialog.findViewById(R.id.btnYes)
+        val btnNo: Button = dialog.findViewById(R.id.btnNo)
+
+        tvMessage.text = "$title\n\n$message"
+        btnYes.text = "Ver Respuesta Completa"
+        btnNo.text = "Reintentar"
+
+        btnYes.setOnClickListener {
+            showFullResponseDialog(fullResponse)
+            dialog.dismiss()
+        }
+
+        btnNo.setOnClickListener {
+            Log.i("Launcher", "Reintento solicitado")
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+    
+    private fun showFullResponseDialog(response: String?) {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.layout_custom_dailog)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val tvMessage: TextView = dialog.findViewById(R.id.tvMessage)
+        val btnYes: Button = dialog.findViewById(R.id.btnYes)
+        val btnNo: Button = dialog.findViewById(R.id.btnNo)
+
+        tvMessage.text = "Respuesta Completa del SDK:\n\n${response ?: "Sin respuesta"}"
+        btnYes.text = "Cerrar"
+        btnNo.visibility = View.GONE
+
+        btnYes.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun showCustomDialogBox(message: String?) {
@@ -82,14 +247,16 @@ class SplashScreen : AppCompatActivity() {
 
         btnYes.setOnClickListener {
             Toast.makeText(this, "click on Yes", Toast.LENGTH_LONG).show()
-            Log.i("Launcher", "Se aceptó el cierre  del splashScreenLanzador")
+            Log.i("Launcher", "Se aceptó el cierre del splashScreenLanzador")
             finish()
         }
 
         btnNo.setOnClickListener {
-            Log.i("Launcher", "No se aceptó el cierre  del splashScreenLanzador")
+            Log.i("Launcher", "No se aceptó el cierre del splashScreenLanzador")
             dialog.dismiss()
         }
         dialog.show()
     }
+
+
 }
