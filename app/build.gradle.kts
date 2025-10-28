@@ -71,6 +71,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     //IDFactory
-    implementation(files("libs/idfactory_1_0_47.aar"))
+    implementation(files("libs/idfactory_1_0_48.aar"))
 
 }

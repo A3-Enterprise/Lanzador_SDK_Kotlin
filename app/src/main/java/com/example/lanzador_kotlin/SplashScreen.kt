@@ -82,24 +82,30 @@ class SplashScreen : AppCompatActivity() {
                     Log.e("LAUNCHER_DEBUG", "🤖 Android Lanzador: onSuccess() - Respuesta recibida")
                     Log.e("LAUNCHER_DEBUG", "Response: $response")
                     
-                    // Parsear respuesta para obtener status
-                    val status = parseStatus(response)
-                    Log.e("LAUNCHER_DEBUG", "Status detectado: $status")
+                    val csid = parseCSID(response)
+                    Log.e("LAUNCHER_DEBUG", "✅ Proceso completado exitosamente - CSID: $csid")
                     
-                    when (status) {
-                        "Success" -> {
-                            Log.e("LAUNCHER_DEBUG", "✅ Proceso completado exitosamente")
-                            showSuccessDialog("✅ Proceso Completado", "El proceso de verificación se completó exitosamente.", response)
-                        }
-                        "Pending" -> {
-                            Log.e("LAUNCHER_DEBUG", "⏳ Proceso pendiente de aprobación")
-                            showSuccessDialog("⏳ Proceso Pendiente", "El proceso está pendiente de aprobación. Se requiere revisión manual.", response)
-                        }
-                        else -> {
-                            Log.e("LAUNCHER_DEBUG", "✅ Respuesta exitosa con status: $status")
-                            showSuccessDialog("✅ Éxito", "Proceso completado.", response)
-                        }
-                    }
+                    showSuccessDialog(
+                        "✅ Proceso Completado", 
+                        "El proceso de verificación se completó exitosamente.\n\nCSID: $csid", 
+                        response
+                    )
+                }
+                
+                override fun onPending(response: String?) {
+                    Log.e("LAUNCHER_DEBUG", "=== SDK onPending llamado ===")
+                    Log.e("LAUNCHER_DEBUG", "🤖 Android Lanzador: onPending() - Respuesta recibida")
+                    Log.e("LAUNCHER_DEBUG", "Response: $response")
+                    
+                    val idTransaction = parseTransactionId(response)
+                    val csid = parseCSID(response)
+                    Log.e("LAUNCHER_DEBUG", "⏳ Proceso pendiente - Transaction: $idTransaction")
+                    
+                    showSuccessDialog(
+                        "⏳ Proceso Pendiente", 
+                        "El proceso está pendiente de aprobación. Se requiere revisión manual.\n\nTransaction ID: $idTransaction\nCSID: $csid", 
+                        response
+                    )
                 }
                 
                 override fun onFailure(response: String?) {
@@ -107,26 +113,10 @@ class SplashScreen : AppCompatActivity() {
                     Log.e("LAUNCHER_DEBUG", "🤖 Android Lanzador: onFailure() - Error recibido")
                     Log.e("LAUNCHER_DEBUG", "Response: $response")
                     
-                    // Parsear respuesta para obtener status y mensaje
-                    val status = parseStatus(response)
                     val message = parseMessage(response)
-                    Log.e("LAUNCHER_DEBUG", "Status de error: $status")
-                    Log.e("LAUNCHER_DEBUG", "Mensaje de error: $message")
+                    Log.e("LAUNCHER_DEBUG", "❌ Error en el proceso - Message: $message")
                     
-                    when (status) {
-                        "Failure-liveness" -> {
-                            Log.e("LAUNCHER_DEBUG", "❌ Error específico de liveness")
-                            showErrorDialog("❌ Error de Liveness", "Error en la detección de vida: $message", response)
-                        }
-                        "Failure" -> {
-                            Log.e("LAUNCHER_DEBUG", "❌ Error general en el proceso")
-                            showErrorDialog("❌ Error en el Proceso", "Error: $message", response)
-                        }
-                        else -> {
-                            Log.e("LAUNCHER_DEBUG", "❌ Error con status: $status")
-                            showErrorDialog("❌ Error", message, response)
-                        }
-                    }
+                    showErrorDialog("❌ Error en el Proceso", "Error: $message", response)
                 }
             }
         )
@@ -135,12 +125,21 @@ class SplashScreen : AppCompatActivity() {
 
     // MARK: - Response Parsers
     
-    private fun parseStatus(response: String?): String {
+    private fun parseCSID(response: String?): String {
         return try {
             val jsonObject = org.json.JSONObject(response ?: "{}")
-            jsonObject.optString("status", "Unknown")
+            jsonObject.optString("CSID", "N/A")
         } catch (e: Exception) {
-            "Unknown"
+            "N/A"
+        }
+    }
+    
+    private fun parseTransactionId(response: String?): String {
+        return try {
+            val jsonObject = org.json.JSONObject(response ?: "{}")
+            jsonObject.optString("idTransaction", "N/A")
+        } catch (e: Exception) {
+            "N/A"
         }
     }
     
