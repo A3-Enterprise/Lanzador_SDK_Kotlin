@@ -149,6 +149,42 @@ private fun handleFailure(response: String?) {
 }
 ```
 
+## 🧪 Respuesta en Simulador
+
+Cuando el SDK se ejecuta en un **emulador/simulador**, retorna automáticamente una respuesta mock para facilitar el testing:
+
+```json
+{
+  "Id": 6376,
+  "Approved": true,
+  "NotApproved": false,
+  "Pending": false,
+  "message": ""
+}
+```
+
+**Características de la respuesta simulada:**
+- **Siempre Success**: `Approved: true, Pending: false`
+- **ID fijo**: `6376` para identificar respuestas de testing
+- **Sin errores**: `message` vacío
+- **Detección automática**: No requiere configuración adicional
+
+**Uso en testing:**
+```kotlin
+override fun onSuccess(response: String?) {
+    val data = parseResponse(response)
+    val id = data.optInt("Id", 0)
+    
+    if (id == 6376) {
+        Log.d("SDK", "🧪 Respuesta de simulador detectada")
+        // Lógica específica para testing
+    } else {
+        Log.d("SDK", "📱 Respuesta de dispositivo real")
+        // Lógica de producción
+    }
+}
+```
+
 ## 🚨 Mensajes de Error Comunes
 
 | Mensaje | Causa | Solución |
@@ -271,6 +307,7 @@ Agregar en `AndroidManifest.xml`:
 2. **Thread safety** - Los handlers se ejecutan en el hilo principal
 3. **Parsing** - Siempre valida el JSON antes de usar los datos
 4. **Permisos** - El SDK maneja automáticamente los permisos de cámara
+5. **Simulador** - Respuesta mock automática para testing (ID: 6376)
 
 ## 🔧 Troubleshooting
 
