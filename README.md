@@ -1,341 +1,305 @@
-# SDK Android - Guía de Integración
+# IdFactory Android SDK - Guía de Integración
 
-Guía completa para integrar el SDK Android de ID Factory en tu aplicación para procesos de verificación de identidad y enrollment.
+Guía técnica para desarrolladores que desean integrar el SDK de verificación de identidad de IdFactory en sus aplicaciones Android.
 
-## 📋 Requisitos
+## 🏗️ Configuración Inicial
 
-- **Android**: API 21+ (Android 5.0)
-- **Kotlin**: 1.8+
-- **Gradle**: 8.0+
+### Requisitos del Sistema
+- **Android API**: 26+ (Android 8.0)
+- **Kotlin/Java**: Compatible con ambos
+- **Permisos**: CAMERA, INTERNET
+- **Hardware**: Cámara frontal y trasera
 
-## 🚀 Instalación
-
-1. Copiar `idfactory_1_0_48.aar` a la carpeta `app/libs/`
-2. Agregar en `app/build.gradle.kts`:
-
+### Dependencias
 ```kotlin
+// build.gradle.kts (app)
 dependencies {
-    implementation(files("libs/idfactory_1_0_48.aar"))
+    implementation(files("libs/idfactory_sdk.aar"))
+    implementation("androidx.webkit:webkit:1.8.0")
+    implementation("org.json:json:20230227")
 }
 ```
 
-3. Importar en tu código:
-
-```kotlin
-import com.SDK_kotlin.mywebview.IDFactoryHandler
-import com.SDK_kotlin.mywebview.IdFactorySDK1
+### Permisos en AndroidManifest.xml
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-feature android:name="android.hardware.camera" android:required="true" />
 ```
 
-## 📦 Implementación
+## 🔧 Implementación del SDK
 
-### 1. Implementar el Handler
+### 1. Inicialización Básica
 
-Implementa la interface `IDFactoryHandler` con los 3 métodos:
-
+#### Método `start()` - Integración Simple
 ```kotlin
 class MainActivity : AppCompatActivity() {
-    
     private val idFactorySDK = IdFactorySDK1.instance
     
-    fun startVerification(url: String) {
+    private fun startVerification(invitationUrl: String) {
         idFactorySDK.start(
-            this,
-            url,
-            object : IDFactoryHandler {
-                
-                // Handler para Success
-                override fun onSuccess(response: String?) {
-                    Log.d("SDK", "✅ Success: Proceso completado")
-                    handleSuccess(response)
-                }
-                
-                // Handler para Pending
-                override fun onPending(response: String?) {
-                    Log.d("SDK", "⏳ Pending: Requiere aprobación manual")
-                    handlePending(response)
-                }
-                
-                // Handler para Failure
-                override fun onFailure(response: String?) {
-                    Log.d("SDK", "❌ Failure: Error en el proceso")
-                    handleFailure(response)
-                }
-            }
+            activity = this,
+            url_invitation = invitationUrl,
+            handler = createSDKHandler()
         )
     }
 }
 ```
 
-### 2. Parsear Respuestas
+#### Método `startSDKProcess()` - Integración Avanzada con Loader
+```kotlin
+private fun startSDKProcess(invitationUrl: String) {
+    // 1. Mostrar tu loader personalizado
+    showCustomLoader()
+    
+    // 2. Configurar listener para ocultar loader cuando esté listo
+    idFactorySDK.setOnWebReadyListener(object : OnWebReadyListener {
+        override fun onWebReady() {
+            hideCustomLoader() // Ocultar loader cuando contenido esté listo
+        }
+    })
+    
+    // 3. Iniciar SDK
+    idFactorySDK.start(
+        activity = this,
+        url_invitation = invitationUrl,
+        handler = createSDKHandler()
+    )
+}
+```
+
+### 2. Implementar Callbacks Obligatorios
 
 ```kotlin
-private fun parseResponse(response: String?): JSONObject {
-    return try {
-        JSONObject(response ?: "{}")
-    } catch (e: Exception) {
-        JSONObject()
-    }
-}
-
-private fun handleSuccess(response: String?) {
-    val data = parseResponse(response)
-    val csid = data.optString("CSID", "N/A")
-    
-    Log.d("SDK", "CSID: $csid")
-    // Guardar CSID en tu base de datos
-    // Redirigir a pantalla de éxito
-}
-
-private fun handlePending(response: String?) {
-    val data = parseResponse(response)
-    val idTransaction = data.optString("idTransaction", "N/A")
-    val csid = data.optString("CSID", "N/A")
-    
-    Log.d("SDK", "Transaction ID: $idTransaction")
-    // Implementar polling para verificar estado
-    // Mostrar mensaje al usuario
-}
-
-private fun handleFailure(response: String?) {
-    val data = parseResponse(response)
-    val message = data.optString("message", "Error desconocido")
-    
-    Log.d("SDK", "Error: $message")
-    
-    // Manejar errores específicos
-    when (message) {
-        "Unauthorized" -> {
-            // Token expirado - renovar y reintentar
+private fun createSDKHandler(): IDFactoryHandler {
+    return object : IDFactoryHandler {
+        override fun onSuccess(response: String?) {
+            // ✅ Verificación completada exitosamente
+            val csid = parseCSID(response)
+            showSuccessMessage("Verificación exitosa", csid)
         }
-        "Invitation key isn't valid" -> {
-            // Key inválida - generar nueva
-        }
-        "Deny consent" -> {
-            // Usuario rechazó consentimiento
-        }
-        "No internet connection" -> {
-            // Pérdida de conectividad
-        }
-    }
-}
-```
-
-## 📡 Estructura de Respuesta
-
-### Success
-```json
-{
-  "status": "Success",
-  "message": "Process completed successfully",
-  "CSID": "abc123-def456-ghi789",
-  "callback": "https://your-callback-url.com"
-}
-```
-
-### Pending
-```json
-{
-  "status": "Pending",
-  "message": "Manual review required",
-  "CSID": "abc123-def456-ghi789",
-  "idTransaction": "txn-123456",
-  "callback": "https://your-callback-url.com"
-}
-```
-
-### Failure
-```json
-{
-  "status": "Failure",
-  "message": "Unauthorized",
-  "CSID": ""
-}
-```
-
-## 🧪 Respuesta en Simulador
-
-Cuando el SDK se ejecuta en un **emulador/simulador**, retorna automáticamente una respuesta mock para facilitar el testing:
-
-```json
-{
-  "Id": 6376,
-  "Approved": true,
-  "NotApproved": false,
-  "Pending": false,
-  "message": ""
-}
-```
-
-**Características de la respuesta simulada:**
-- **Siempre Success**: `Approved: true, Pending: false`
-- **ID fijo**: `6376` para identificar respuestas de testing
-- **Sin errores**: `message` vacío
-- **Detección automática**: No requiere configuración adicional
-
-**Uso en testing:**
-```kotlin
-override fun onSuccess(response: String?) {
-    val data = parseResponse(response)
-    val id = data.optInt("Id", 0)
-    
-    if (id == 6376) {
-        Log.d("SDK", "🧪 Respuesta de simulador detectada")
-        // Lógica específica para testing
-    } else {
-        Log.d("SDK", "📱 Respuesta de dispositivo real")
-        // Lógica de producción
-    }
-}
-```
-
-## 🚨 Mensajes de Error Comunes
-
-| Mensaje | Causa | Solución |
-|---------|-------|----------|
-| `"Unauthorized"` | Token expirado | Renovar token y reintentar |
-| `"Invitation key isn't valid"` | Key inválida/usada | Generar nueva key |
-| `"Deny consent"` | Usuario rechazó | Usuario debe aceptar |
-| `"No internet connection"` | Pérdida prolongada de conectividad | Verificar conexión a internet |
-
-## 💡 Ejemplo Completo
-
-```kotlin
-import android.os.Bundle
-import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import com.SDK_kotlin.mywebview.IDFactoryHandler
-import com.SDK_kotlin.mywebview.IdFactorySDK1
-import org.json.JSONObject
-
-class VerificationActivity : AppCompatActivity() {
-    
-    private val idFactorySDK = IdFactorySDK1.instance
-    
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_verification)
         
-        val url = "https://enrolldev.idfactory.me/enroll?SubCustomer=TestCustomer&key=abc123"
-        startVerification(url)
-    }
-    
-    private fun startVerification(url: String) {
-        idFactorySDK.start(
-            this,
-            url,
-            object : IDFactoryHandler {
-                
-                override fun onSuccess(response: String?) {
-                    val data = parseResponse(response)
-                    val csid = data.optString("CSID", "")
-                    
-                    // Guardar en base de datos
-                    saveVerification(csid)
-                    
-                    // Mostrar éxito
-                    showSuccessDialog(csid)
-                }
-                
-                override fun onPending(response: String?) {
-                    val data = parseResponse(response)
-                    val idTransaction = data.optString("idTransaction", "")
-                    
-                    // Iniciar polling
-                    startPolling(idTransaction)
-                    
-                    // Mostrar mensaje
-                    showPendingDialog(idTransaction)
-                }
-                
-                override fun onFailure(response: String?) {
-                    val data = parseResponse(response)
-                    val message = data.optString("message", "Error")
-                    
-                    // Mostrar error
-                    showErrorDialog(message)
-                }
-            }
-        )
-    }
-    
-    private fun parseResponse(response: String?): JSONObject {
-        return try {
-            JSONObject(response ?: "{}")
-        } catch (e: Exception) {
-            JSONObject()
+        override fun onPending(response: String?) {
+            // ⏳ Requiere revisión manual
+            val transactionId = parseTransactionId(response)
+            val csid = parseCSID(response)
+            showPendingMessage("Pendiente de revisión", transactionId, csid)
+        }
+        
+        override fun onFailure(response: String?) {
+            // ❌ Error en el proceso
+            val errorMessage = parseMessage(response)
+            showErrorMessage("Error en verificación", errorMessage)
         }
     }
 }
 ```
 
-## 🔄 Polling para Pending
+### 3. Parsear Respuestas del SDK
 
 ```kotlin
-private fun startPolling(transactionId: String) {
-    val handler = Handler(Looper.getMainLooper())
-    val runnable = object : Runnable {
-        override fun run() {
-            checkTransactionStatus(transactionId) { status ->
-                when (status) {
-                    "Success" -> {
-                        showSuccessDialog("...")
-                    }
-                    "Failure" -> {
-                        showErrorDialog("Proceso rechazado")
-                    }
-                    else -> {
-                        handler.postDelayed(this, 30000) // Reintentar en 30s
-                    }
-                }
-            }
-        }
+private fun parseCSID(response: String?): String {
+    return try {
+        val jsonObject = JSONObject(response ?: "{}")
+        jsonObject.optString("CSID", "N/A")
+    } catch (e: Exception) {
+        "N/A"
     }
-    handler.post(runnable)
+}
+
+private fun parseTransactionId(response: String?): String {
+    return try {
+        val jsonObject = JSONObject(response ?: "{}")
+        jsonObject.optString("idTransaction", "N/A")
+    } catch (e: Exception) {
+        "N/A"
+    }
+}
+
+private fun parseMessage(response: String?): String {
+    return try {
+        val jsonObject = JSONObject(response ?: "{}")
+        jsonObject.optString("message", "Sin mensaje")
+    } catch (e: Exception) {
+        response ?: "Sin respuesta"
+    }
 }
 ```
 
-## 🔧 Permisos Requeridos
+## 🎯 Diferencias entre Métodos
 
-Agregar en `AndroidManifest.xml`:
+### `start()` vs `startSDKProcess()`
 
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+| Aspecto | `start()` | `startSDKProcess()` |
+|---------|-----------|---------------------|
+| **Uso** | Integración básica | Integración con loader personalizado |
+| **Loader** | No incluye | Incluye manejo de loader |
+| **Complejidad** | Simple | Avanzado |
+| **Control UX** | Limitado | Completo |
+| **Recomendado para** | Pruebas rápidas | Producción |
+
+### Cuándo usar cada método:
+
+#### Usar `start()` cuando:
+- Necesitas una integración rápida
+- No requieres loader personalizado
+- Estás en fase de pruebas
+
+#### Usar `startSDKProcess()` cuando:
+- Quieres controlar la experiencia de usuario
+- Necesitas mostrar un loader mientras carga el contenido
+- Implementación para producción
+
+## 🔄 Flujo Completo de Integración
+
+### 1. Verificar Permisos
+```kotlin
+private fun hasRequiredPermissions(): Boolean {
+    return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == 
+           PackageManager.PERMISSION_GRANTED
+}
+
+private fun requestCameraPermissions() {
+    ActivityCompat.requestPermissions(
+        this,
+        arrayOf(Manifest.permission.CAMERA),
+        PERMISSION_REQUEST_CODE
+    )
+}
 ```
 
-## 📝 Notas Importantes
+### 2. Manejo de Permisos
+```kotlin
+override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<String>,
+    grantResults: IntArray
+) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    
+    if (requestCode == PERMISSION_REQUEST_CODE) {
+        if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            startSDKProcess(invitationUrl)
+        } else {
+            showPermissionError()
+        }
+    }
+}
+```
 
-1. **Todos los handlers son obligatorios** - Debes implementar los 3 métodos
-2. **Thread safety** - Los handlers se ejecutan en el hilo principal
-3. **Parsing** - Siempre valida el JSON antes de usar los datos
-4. **Permisos** - El SDK maneja automáticamente los permisos de cámara
-5. **Simulador** - Respuesta mock automática para testing (ID: 6376)
+### 3. Implementación Completa
+```kotlin
+class MainActivity : AppCompatActivity() {
+    private val idFactorySDK = IdFactorySDK1.instance
+    private var loaderDialog: Dialog? = null
+    
+    fun initiateVerification(invitationUrl: String) {
+        if (!hasRequiredPermissions()) {
+            requestCameraPermissions()
+            return
+        }
+        startSDKProcess(invitationUrl)
+    }
+    
+    private fun showCustomLoader() {
+        loaderDialog = Dialog(this).apply {
+            setContentView(R.layout.custom_loader)
+            setCancelable(false)
+            show()
+        }
+    }
+    
+    private fun hideCustomLoader() {
+        loaderDialog?.dismiss()
+        loaderDialog = null
+    }
+}
+```
 
-## 🔧 Troubleshooting
+## 📋 Estructura de Respuestas
 
-### SDK no se importa
-1. Verificar que el `.aar` esté en `app/libs/`
-2. Limpiar proyecto: Build → Clean Project
-3. Verificar dependencia en `build.gradle.kts`
+### Formato de Eventos
+Todos los callbacks reciben un JSON con esta estructura:
+```json
+{
+  "status": "Success|Pending|Failure",
+  "message": "Descripción del resultado",
+  "CSID": "ID único del proceso",
+  "idTransaction": "ID de transacción (solo en Pending)"
+}
+```
 
-### No se reciben eventos
-1. Verificar que implementas los 3 handlers
-2. Revisar logs en Logcat (buscar "IDFactory_SDK:")
-3. Verificar URL de invitación válida
+### Estados de Respuesta
 
-### Error de permisos
-1. Verificar permisos en `AndroidManifest.xml`
-2. Para Android 6+, el SDK maneja permisos automáticamente
-3. Verificar que el dispositivo tenga cámara
+#### ✅ Success
+- **Significado**: Verificación completada y aprobada
+- **Acción**: Mostrar mensaje de éxito al usuario
+- **Datos**: Incluye CSID para referencia
 
-## 📞 Soporte
+#### ⏳ Pending
+- **Significado**: Requiere revisión manual
+- **Acción**: Informar al usuario sobre el tiempo de espera
+- **Datos**: Incluye CSID e idTransaction
 
-- **Email**: support@idfactory.me
-- **Documentación**: https://docs.idfactory.me
+#### ❌ Failure
+- **Significado**: Error en el proceso
+- **Acción**: Mostrar error específico y permitir reintento
+- **Datos**: Incluye mensaje de error detallado
+
+## ⚠️ Manejo de Errores
+
+### Errores Comunes y Soluciones
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `"Unauthorized"` | Token inválido/expirado | Renovar token de invitación |
+| `"Invitation key isn't valid"` | URL inválida/usada/expirada | Generar nueva URL |
+| `"Deny consent"` | Usuario rechazó consentimiento | Usuario debe aceptar términos |
+| `"No internet connection"` | Pérdida de conectividad | Verificar conexión a internet |
+| `"Internal Server Error Liveness"` | Error en detección de vida | Reintentar proceso |
+
+### Manejo de Errores de Permisos
+```kotlin
+// Los errores de permisos NO emiten eventos del SDK
+// Deben manejarse a nivel de aplicación
+if (!hasRequiredPermissions()) {
+    showPermissionDialog()
+    return
+}
+```
+
+## 🔍 Debugging y Testing
+
+### Logs del SDK
+En modo debug, el SDK emite logs detallados:
+```kotlin
+// Habilitar logs en BuildConfig.DEBUG
+if (BuildConfig.DEBUG) {
+    Log.d("IdFactorySDK", "Evento recibido: $eventData")
+}
+```
+
+### URLs de Testing
+- **Sandbox**: `https://sandbox.idfactory.com/invitation/...`
+- **Producción**: `https://app.idfactory.com/invitation/...`
+
+## 📞 Soporte Técnico
+
+### Información para Soporte
+Cuando contactes soporte, incluye:
+- **CSID**: ID único del proceso
+- **idTransaction**: ID de transacción (si aplica)
+- **Logs**: Logs del SDK en modo debug
+- **URL**: URL de invitación utilizada
+
+### Contacto
+- **Email Técnico**: dev-support@idfactory.com
+- **Documentación**: [docs.idfactory.com](https://docs.idfactory.com)
+- **Status Page**: [status.idfactory.com](https://status.idfactory.com)
 
 ---
 
-**Versión SDK**: 1.0.48  
-**Última actualización**: Enero 2025
+**SDK Versión**: 1.0.49  
+**Guía Versión**: 3.0  
+**Última actualización**: Noviembre 2024  
+**Compatibilidad**: Android 8.0+ (API 26+)

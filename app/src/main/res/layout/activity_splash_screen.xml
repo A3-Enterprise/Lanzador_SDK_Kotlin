@@ -4,70 +4,126 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="#F8F9FA">
 
+    <!-- Header Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/header_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="24dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <ImageView
-        android:id="@+id/imageView5"
-        android:layout_width="211dp"
-        android:layout_height="184dp"
-        android:layout_marginStart="100dp"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="180dp"
+                android:layout_height="120dp"
+                android:layout_marginBottom="16dp"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/idfactory_logo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Identity Verification"
+                android:textColor="#2C3E50"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Secure • Fast • Reliable"
+                android:textColor="#7F8C8D"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Input Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/input_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="32dp"
-        android:layout_marginEnd="100dp"
+        android:layout_marginEnd="24dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ado_logo_newcolor" />
+        app:layout_constraintTop_toBottomOf="@+id/header_card">
 
-    <EditText
-        android:id="@+id/uri_invitation"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="88dp"
-        android:layout_marginEnd="32dp"
-        android:background="@drawable/border_style"
-        android:hint="URL_invitation"
-        android:inputType="textUri"
-        android:textAllCaps="false"
-        android:textColor="@color/black_overlay"
-        android:textColorHighlight="@color/white"
-        android:textColorHint="@color/black_overlay"
-        android:textColorLink="@color/black_overlay"
-        android:textIsSelectable="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView5" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="Invitation URL"
+                android:textColor="#2C3E50"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btn_start"
-        android:layout_width="0dp"
-        android:layout_height="47dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="50dp"
-        android:background="@drawable/radius2"
-        android:text="Iniciar"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/uri_invitation" />
+            <EditText
+                android:id="@+id/uri_invitation"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/border_style"
+                android:hint="Enter invitation URL"
+                android:inputType="textUri"
+                android:padding="16dp"
+                android:textColor="#2C3E50"
+                android:textColorHint="#7F8C8D"
+                android:textSize="14sp" />
 
+            <Button
+                android:id="@+id/btn_start"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/radius2"
+                android:text="Start Verification"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Close Button -->
     <Button
         android:id="@+id/btn_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="60dp"
-        android:background="@drawable/radius2"
-        android:text="Cerrar"
-        android:textColor="@color/white"
+        android:layout_marginBottom="32dp"
+        android:background="@android:color/transparent"
+        android:text="Close App"
+        android:textAllCaps="false"
+        android:textColor="#E74C3C"
+        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.848"
         app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Loader Container -->

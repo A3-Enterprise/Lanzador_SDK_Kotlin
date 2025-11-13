@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.SDK_kotlin.mywebview.IDFactoryHandler
 import com.SDK_kotlin.mywebview.IdFactorySDK1
+import com.SDK_kotlin.mywebview.OnWebReadyListener
 import com.SDK_kotlin.mywebview.MyApp
 
 
@@ -29,17 +30,22 @@ class SplashScreen : AppCompatActivity() {
     companion object {
         val instance = SplashScreen()
         val myApp = MyApp.instance
+        private const val PERMISSION_REQUEST_CODE = 1234
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         myApp.SetContext(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
-
-        Log.e("LAUNCHER_DEBUG", "=== NUEVA VERSION LANZADOR INICIADA ===")
-        Log.e("LAUNCHER_DEBUG", "SplashScreen onCreate ejecutado")
-        Log.i("Launcher", "Se inicio el splashScreenLanzador")
         
         val uriInvitation: EditText = findViewById(R.id.uri_invitation)
+        
+        // Configurar doble click para seleccionar todo el texto
+        uriInvitation.setOnClickListener { view ->
+            if (view is EditText) {
+                view.selectAll()
+            }
+        }
+        
         val btn_start: Button = findViewById(R.id.btn_start)
         btn_start.setOnClickListener {
             if (uriInvitation.text.toString() != ""){
@@ -59,24 +65,33 @@ class SplashScreen : AppCompatActivity() {
 
 
     fun capture(uri: String) {
-        Log.e("LAUNCHER_DEBUG", "=== LAUNCHER DEBUG START ===")
-        Log.e("LAUNCHER_DEBUG", "Iniciando captura con URI: $uri")
-        Log.e("LAUNCHER_DEBUG", "SDK Instance: ${idFactorySDK1.javaClass.name}")
-        Log.e("LAUNCHER_DEBUG", "SDK Package: ${idFactorySDK1.javaClass.`package`?.name}")
+        if (!hasRequiredPermissions()) {
+            pendingUri = uri
+            requestCameraPermissions()
+            return
+        }
+        startSDKProcess(uri)
+    }
+    
+    private fun startSDKProcess(uri: String) {
+        showParentLoader()
         
-        // Test log para confirmar que funciona
-        println("=== LANZADOR: BOTON PRESIONADO ===")
-        Log.e("TEST_HARDWARE", "=== TELEFONO HARDWARE CONECTADO ===")
-        Log.w("TEST_HARDWARE", "=== WARNING LOG TEST ===")
-        Log.i("TEST_HARDWARE", "=== INFO LOG TEST ===")
-        Log.d("TEST_HARDWARE", "=== DEBUG LOG TEST ===")
-        Log.v("TEST_HARDWARE", "=== VERBOSE LOG TEST ===")
-        Log.e("TIMEOUT_COUNTER", "=== TEST LOG DESDE LANZADOR ===")
+        // Configurar callback para ocultar loader cuando el contenido esté listo
+        idFactorySDK1.setOnWebReadyListener(object : OnWebReadyListener {
+            override fun onWebReady() {
+                hideParentLoader()
+            }
+        })
         
         idFactorySDK1.start(
             this,
             uri,
-            object : IDFactoryHandler {
+            createSDKHandler()
+        )
+    }
+    
+    private fun createSDKHandler(): IDFactoryHandler {
+        return object : IDFactoryHandler {
                 override fun onSuccess(response: String?) {
                     Log.e("LAUNCHER_DEBUG", "=== SDK onSuccess llamado ===")
                     Log.e("LAUNCHER_DEBUG", "🤖 Android Lanzador: onSuccess() - Respuesta recibida")
@@ -84,6 +99,9 @@ class SplashScreen : AppCompatActivity() {
                     
                     val csid = parseCSID(response)
                     Log.e("LAUNCHER_DEBUG", "✅ Proceso completado exitosamente - CSID: $csid")
+                    
+                    // Limpiar campo URL
+                    findViewById<EditText>(R.id.uri_invitation).setText("")
                     
                     showSuccessDialog(
                         "✅ Proceso Completado", 
@@ -101,6 +119,9 @@ class SplashScreen : AppCompatActivity() {
                     val csid = parseCSID(response)
                     Log.e("LAUNCHER_DEBUG", "⏳ Proceso pendiente - Transaction: $idTransaction")
                     
+                    // Limpiar campo URL
+                    findViewById<EditText>(R.id.uri_invitation).setText("")
+                    
                     showSuccessDialog(
                         "⏳ Proceso Pendiente", 
                         "El proceso está pendiente de aprobación. Se requiere revisión manual.\n\nTransaction ID: $idTransaction\nCSID: $csid", 
@@ -116,11 +137,12 @@ class SplashScreen : AppCompatActivity() {
                     val message = parseMessage(response)
                     Log.e("LAUNCHER_DEBUG", "❌ Error en el proceso - Message: $message")
                     
+                    // Limpiar campo URL
+                    findViewById<EditText>(R.id.uri_invitation).setText("")
+                    
                     showErrorDialog("❌ Error en el Proceso", "Error: $message", response)
                 }
             }
-        )
-        Log.e("LAUNCHER_DEBUG", "=== LAUNCHER DEBUG END ===")
     }
 
     // MARK: - Response Parsers
@@ -177,8 +199,6 @@ class SplashScreen : AppCompatActivity() {
         btnNo.setOnClickListener {
             Log.i("Launcher", "Nueva invitación solicitada")
             dialog.dismiss()
-            // Limpiar campo URL para nueva invitación
-            findViewById<EditText>(R.id.uri_invitation).setText("")
         }
         dialog.show()
     }
@@ -256,6 +276,83 @@ class SplashScreen : AppCompatActivity() {
         }
         dialog.show()
     }
+    
+    // MARK: - WebReady Callback
+    
+    private fun onWebReady() {
+        hideParentLoader()
+    }
+    
+    // MARK: - Permission Management
+    
+    private var pendingUri: String? = null
+    private var loaderDialog: android.app.Dialog? = null
+    
+    private val requiredPermissions = arrayOf(
+        android.Manifest.permission.CAMERA
+    )
+    
+    private fun hasRequiredPermissions(): Boolean {
+        return requiredPermissions.all {
+            androidx.core.content.ContextCompat.checkSelfPermission(this, it) == 
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+    }
+    
+    private fun requestCameraPermissions() {
+        androidx.core.app.ActivityCompat.requestPermissions(
+            this,
+            requiredPermissions,
+            PERMISSION_REQUEST_CODE
+        )
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            val allGranted = grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }
+            
+            if (allGranted && pendingUri != null) {
+                startSDKProcess(pendingUri!!)
+            } else {
+                Toast.makeText(this, "Se requieren permisos de cámara para continuar", Toast.LENGTH_LONG).show()
+            }
+            
+            pendingUri = null
+        }
+    }
+    
+    private fun showParentLoader() {
+        try {
+            loaderDialog = Dialog(this)
+            loaderDialog?.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            loaderDialog?.setCancelable(false)
+            loaderDialog?.setContentView(R.layout.loader_dialog)
+            loaderDialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            loaderDialog?.window?.setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            loaderDialog?.show()
+        } catch (e: Exception) {
+            // Handle error
+        }
+    }
+    
+    private fun hideParentLoader() {
+        try {
+            loaderDialog?.dismiss()
+            loaderDialog = null
+        } catch (e: Exception) {
+            // Handle error
+        }
+    }
+    
 
 
 }
