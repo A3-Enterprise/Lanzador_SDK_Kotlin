@@ -7,7 +7,7 @@ Guía técnica para desarrolladores que desean integrar el SDK de verificación 
 ### Requisitos del Sistema
 - **Android API**: 26+ (Android 8.0)
 - **Kotlin/Java**: Compatible con ambos
-- **Permisos**: CAMERA, INTERNET
+- **Permisos**: CAMERA, INTERNET, ACCESS_NETWORK_STATE
 - **Hardware**: Cámara frontal y trasera
 
 ### Dependencias
@@ -22,10 +22,38 @@ dependencies {
 
 ### Permisos en AndroidManifest.xml
 ```xml
-<uses-permission android:name="android.permission.CAMERA" />
+<!-- Permisos requeridos -->
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.CAMERA" />
+
+<!-- Hardware requerido -->
 <uses-feature android:name="android.hardware.camera" android:required="true" />
 ```
+
+### Permisos del SDK (v1.0.50)
+
+El SDK utiliza únicamente 3 permisos esenciales siguiendo el principio de mínimo privilegio:
+
+#### Permisos Obligatorios:
+- **INTERNET**: Cargar URL de enrollment y comunicación con servicios
+- **ACCESS_NETWORK_STATE**: Verificar conectividad de red antes de iniciar
+- **CAMERA**: Liveness detection y captura de documento de identidad
+
+#### Geolocalización (Dinámica):
+- **No requiere declaración en Manifest**
+- **Solicitud dinámica**: El permiso se solicita automáticamente solo cuando la invitación lo requiera
+- **Configuración por invitación**: El comportamiento se define al crear la invitación en el portal de IdFactory:
+  - **Apagada**: No se solicita geolocalización
+  - **Voluntaria**: Se solicita al usuario, puede denegar y continuar el flujo
+  - **Obligatoria**: Se solicita al usuario, debe conceder el permiso para continuar
+- **Control automático**: El SDK maneja la solicitud, validación y retroalimentación según la configuración de la invitación
+- **Sin código adicional**: No requiere implementación por parte del desarrollador
+
+#### Permisos Removidos (v1.0.50):
+- ~~CAMERA2~~ - Permiso inválido de Android (removido)
+- ~~SYSTEM_ALERT_WINDOW~~ - No utilizado por el SDK (removido)
+- ~~ACCESS_COARSE_LOCATION~~ - Ya removido desde v1.0.48
 
 ## 🔧 Implementación del SDK
 
@@ -295,11 +323,26 @@ Cuando contactes soporte, incluye:
 ### Contacto
 - **Email Técnico**: dev-support@idfactory.com
 - **Documentación**: [docs.idfactory.com](https://docs.idfactory.com)
-- **Status Page**: [status.idfactory.com](https://status.idfactory.com)
 
 ---
 
-**SDK Versión**: 1.0.49  
-**Guía Versión**: 3.0  
-**Última actualización**: Noviembre 2024  
+**SDK Versión**: 1.0.50  
+**Guía Versión**: 3.1  
+**Última actualización**: Enero 2026  
 **Compatibilidad**: Android 8.0+ (API 26+)
+
+## 📝 Changelog
+
+### v1.0.50 (Enero 2026)
+- ✅ Optimización de permisos (de 5 a 3 permisos)
+- ✅ Removido permiso inválido CAMERA2
+- ✅ Removido permiso no utilizado SYSTEM_ALERT_WINDOW
+- ✅ Geolocalización manejada dinámicamente por WebView
+- ✅ Mejoras de seguridad y privacidad
+- ✅ Cumplimiento de principio de mínimo privilegio
+
+### v1.0.49 (Noviembre 2024)
+- Versión estable anterior
+
+### v1.0.48
+- Removido ACCESS_COARSE_LOCATION
